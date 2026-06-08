@@ -111,4 +111,4 @@ go test ./...
 
 ## Lisensi
 
-Didistribusikan di bawah lisensi MIT. Silakan baca berkas `LICENSE` untuk detail selengkapnya.
+Didistribusikan di bawah lisensi Apache 2.0. Silahkan baca berkas `LICENSE` untuk detail selengkapnya.
