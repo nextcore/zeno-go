@@ -32,17 +32,19 @@ Here is how `zeno-go` compares to original Laravel Blade (PHP) and why it's a ga
 | **Inline Custom Logic** | Yes (`@php` block evaluates PHP) | **Yes (`@php` / `@zeno` evaluates ZenoLang)** | Run custom code safely inside the template sandbox without crashes. |
 | **Deployment** | Multi-file PHP codebase | **Single Self-Contained Binary** | Compiles directly into your Go binary. Zero external runtime dependencies. |
 
-### 2. ZenoBlade vs Other Go Templating Alternatives
+### 2. ZenoBlade vs Go Alternatives (From a Laravel Developer's Perspective)
 
-| Feature / Metric | `html/template` (StdLib) | `Pongo2` (Django/Jinja) | `Quicktemplate` | **ZenoBlade (`zeno-go`)** |
-| :--- | :--- | :--- | :--- | :--- |
-| **Syntax Style** | Go-specific `{{ .Data }}` | Django/Twig `{% block %}` | Custom Go-like | **Laravel Blade (`@extends`, `<x-comp>`)** |
-| **Layout Inheritance** | Basic (via `{{ template }}`) | Yes (`extends`, `block`) | Yes (via Go interfaces) | **Yes (`@extends`, `@section`, `@yield`)** |
-| **Component Tags** | No | No | No | **Yes (HTML-style tags `<x-card>`)** |
-| **Asset Stacks** | No | No | No | **Yes (`@push`, `@stack`)** |
-| **Hot Reload** | Manual setup required | Yes | No (requires Go compile) | **Yes (Built-in for dev mode)** |
-| **Custom Extension** | Via `FuncMap` | Tag/Filter registration | Via Go methods | **Direct slot registration (`engine.Register`)** |
-| **Strict Validation** | No | No | Compile-time Go typing | **Yes (Runtime validation)** |
+For a developer coming from PHP/Laravel to Go, here is how the mainstream template solutions stack up against ZenoBlade:
+
+| Feature / Metric | Go Standard `html/template` | `templ` (`a-h/templ`) | **ZenoBlade (`zeno-go`)** |
+| :--- | :--- | :--- | :--- |
+| **Learning Curve** | High (Unfamiliar Go-specific syntax) | Moderate (Requires JSX-like Go hybrid learning) | **Zero (100% Identical to Laravel Blade)** |
+| **Layout Inheritance** | Painful (No `@extends`, uses block defines) | Basic (Uses Go function wrapper blocks) | **Native (`@extends`, `@section`, `@yield`)** |
+| **Component Tag System** | None | JSX-like Go function calls (e.g. `@Card()`) | **HTML Components (`<x-card title="...">`)** |
+| **Asset Stack System** | None | None | **Native Stacks (`@push`, `@stack`)** |
+| **Development Cycle** | Fast (Requires custom reload wrappers) | Slow (Requires CLI code generation & Go compile) | **Instant Hot Reload (Save view & refresh browser)** |
+| **Laravel Helpers** | None | None | **Built-in (`@csrf`, `@method`, `@class`)** |
+| **Logic Evaluation** | Limited to pipeline queries | Raw Go code blocks | **Safe ZenoLang sandbox (`@php` / `@zeno`)** |
 
 ---
 
