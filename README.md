@@ -46,6 +46,27 @@ Here is how `zeno-go` compares to original Laravel Blade (PHP) and why it's a ga
 
 ---
 
+## Development vs Production Mode (Smart RAM Caching)
+
+`zeno-go` is designed to be highly optimized and production-ready by default. The engine adjusts its compilation and cache verification behavior based on the `APP_ENV` environment variable:
+
+### 1. Default Mode (Production-Ready with Hot Reload)
+By default (when `APP_ENV` is not set to `production`), **templates are cached in RAM and fully production-ready**:
+- **Smart Modification Checking**: For every request, `zeno-go` does a quick, lightweight check on the template's modification time (`os.Stat`).
+- **No Performance Penalty**: If the file hasn't changed, the template is served **directly from the RAM cache** (compiled AST).
+- **Read-once on Modification**: The engine only reads and re-parses the file **once** when it detects a change. This gives you the instantaneous feedback cycle of dynamic engines (no Go recompilation required) while remaining fast enough for production.
+
+### 2. Strict Production Mode (`APP_ENV=production`)
+For maximum performance, security hardening, and absolute disk isolation:
+```bash
+export APP_ENV=production
+```
+- **Static In-Memory Cache**: Once a template is loaded and compiled, the AST remains in RAM permanently.
+- **Bypasses Filesystem Entirely**: The engine completely stops checking `os.Stat` or querying the disk for subsequent render requests, eliminating filesystem overhead.
+- **Hardened Security**: Because the engine only reads from the static RAM cache, it prevents potential filesystem-level attacks (like runtime template tampering or directory traversal attempts).
+
+---
+
 ## Key Features
 
 - **Laravel Blade Directives (`pkg/blade`)**: Support for layout inheritance (`@extends`, `@yield`, `@section`), partials (`@include`), slots, and reusable component tags (`<x-card>`).
