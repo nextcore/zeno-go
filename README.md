@@ -1,18 +1,14 @@
-# ZenoEngine (Go Implementation) - `zeno-go`
+# ZenoEngine & ZenoBlade Core (Go) - `zeno-go`
 
-`zeno-go` adalah implementasi bahasa pemrograman dinamis **ZenoLang** dan sistem templating **ZenoBlade** berbasis Go. Engine ini dirancang khusus untuk performa tinggi, konsumsi memori rendah, serta kemudahan integrasi ke dalam aplikasi web Go modern.
+`zeno-go` adalah pustaka inti (*core library*) bahasa pemrograman dinamis **ZenoLang** dan engine template **ZenoBlade** berbasis Go. Pustaka ini sangat ringan, memiliki dependensi minimal, dan dirancang khusus untuk disematkan (*embedded*) pada proyek aplikasi Go mana saja.
 
 ---
 
 ## Fitur Utama
 
-* **ZenoLang Core Execution**: Evaluasi ekspresi berbasis Abstract Syntax Tree (AST) yang sangat cepat, aman, dan modular.
-* **ZenoBlade Template Engine**: Engine template berbasis Blade dengan dukungan pewarisan layout (`@extends`), blok partial (`@include`), dynamic section (`@section`/`@yield`), push-stack assets (`@push`/`@stack`), dan proteksi XSS otomatis.
-* **Unified Database Layer**: Akses data terstandarisasi untuk MariaDB/MySQL, PostgreSQL, Microsoft SQL Server, dan SQLite.
-* **Native Storage Abstraction**: Manajemen file terabstraksi mendukung penyimpanan lokal (filesystem) dan AWS S3-compatible cloud storage (MinIO, Cloudflare R2, DigitalOcean Spaces, dll.) dengan fallback lokal otomatis.
-* **SMTP Mail Engine**: Pengiriman email bawaan dengan mode Mock otomatis untuk mempermudah lingkungan pengembangan (development).
-* **Automatic OpenAPI Docs**: Registrasi routing API yang langsung menerjemahkan endpoint menjadi skema OpenAPI 3.0 dan menyajikan visualisasi Swagger UI secara instan.
-* **CLI Runtime Tooling**: Program CLI `zeno` yang siap pakai untuk eksekusi skrip (`run`), pengujian (`test`), validasi sintaks (`check`), migrasi database (`migrate`), dan generator kunci keamanan (`key:generate`).
+* **ZenoLang Core (`pkg/engine`)**: Evaluasi ekspresi dinamis berbasis Abstract Syntax Tree (AST) yang sangat cepat, aman, thread-safe, dan hemat memori.
+* **ZenoBlade Template (`pkg/blade`)**: Engine parser template bergaya Laravel Blade dengan dukungan pewarisan layout (`@extends`), blok partial (`@include`), dynamic section (`@section`/`@yield`), push-stack assets (`@push`/`@stack`), hot-reload di mode development, dan XSS auto-escaping otomatis demi keamanan data.
+* **Standard Control Slots (`pkg/slots`)**: Menyediakan fungsi logika bawaan standar seperti perulangan (`for`/`foreach`), kondisi (`if`, `switch`, `isset`, `empty`, `unless`), penanganan error (`try`/`catch`), dan pengecekan otentikasi sederhana (`auth`/`guest`).
 
 ---
 
@@ -28,9 +24,9 @@ go get github.com/nextcore/zeno-go
 
 ## Panduan Memulai Cepat (Quickstart)
 
-### 1. Inisialisasi Engine & Eksekusi ZenoLang
+### 1. Eksekusi Script ZenoLang (Zeno Core)
 
-Berikut contoh dasar mengevaluasi skrip ZenoLang dari Go:
+Evaluasi ekspresi logika atau variabel ZenoLang langsung di Go:
 
 ```go
 package main
@@ -41,18 +37,18 @@ import (
 )
 
 func main() {
-	// 1. Buat instance engine baru
+	// 1. Buat instance engine dan scope baru
 	eng := engine.NewEngine()
 
-	// 2. Tentukan variabel di dalam global scope
+	// 2. Masukkan data ke dalam scope variabel
 	eng.Scope.Set("$name", "ZenoEngine")
 
-	// 3. Evaluasi ekspresi logika/script
-	code := `
+	// 3. Jalankan script
+	scriptCode := `
 		var: $greeting { val: "Halo, " + $name + "!" }
 		return: $greeting
 	`
-	result, err := eng.EvaluateString(code)
+	result, err := eng.EvaluateString(scriptCode)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +59,7 @@ func main() {
 
 ### 2. Rendering Template ZenoBlade
 
-Gunakan `pkg/blade` untuk merender template Blade HTML secara interaktif:
+Render string/file template HTML menggunakan ZenoBlade parser:
 
 ```go
 package main
@@ -77,19 +73,19 @@ import (
 func main() {
 	eng := engine.NewEngine()
 	
-	// Registrasi slot logic standar
+	// Registrasi slot control flow dasar (if, for, dll.) ke engine
 	blade.RegisterBladeSlots(eng)
 
-	// Inisialisasi template context
+	// Set data yang akan ditampilkan di template
 	eng.Scope.Set("$title", "Beranda")
 	eng.Scope.Set("$user", "Max")
 
-	templateCode := `
+	templateHTML := `
 		<h1>{{ $title }}</h1>
 		<p>Selamat datang kembali, {{ $user }}!</p>
 	`
 	
-	output, err := blade.RenderString(eng, templateCode)
+	output, err := blade.RenderString(eng, templateHTML)
 	if err != nil {
 		panic(err)
 	}
@@ -103,29 +99,9 @@ func main() {
 
 ---
 
-## Menggunakan CLI Runtime `zeno`
-
-Kompilasi CLI tool `zeno` langsung dari repositori Anda untuk keperluan pengujian dan otomasi server:
-
-```bash
-# Kompilasi CLI
-go build -o zeno cmd/zeno/zeno.go
-
-# Mengecek sintaks berkas ZenoLang
-./zeno check src/main.zl
-
-# Menjalankan script secara langsung
-./zeno run src/main.zl
-
-# Menjalankan pengujian (unit testing)
-./zeno test
-```
-
----
-
 ## Pengujian Unit (Unit Testing)
 
-Jalankan perintah pengujian Go untuk memastikan semua subsystem (compiler, parser, slots) lulus uji:
+Untuk memastikan seluruh parser AST, transpiler template, dan slots kontrol flow berjalan sempurna di lokal Anda, jalankan:
 
 ```bash
 go test ./...
