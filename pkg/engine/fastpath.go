@@ -17,9 +17,11 @@ func FastHTTPResponse(ctx context.Context, w http.ResponseWriter, status int, bo
 }
 
 // FastVarSet provides optimized path for simple variable assignment
-// Bypasses node execution overhead
+// Bypasses node execution overhead.
+// [FIX] Uses scope.Update so assignment in sub-scopes (foreach/do)
+// correctly updates variables declared in outer scopes.
 func FastVarSet(scope *Scope, name string, value interface{}) {
-	scope.Set(name, value)
+	scope.Update(name, value)
 }
 
 // isSimpleHTTPResponse checks if http.response node can use fast path
@@ -102,11 +104,12 @@ func TryFastPath(ctx context.Context, node *Node, scope *Scope) (bool, error) {
 		return true, err
 	}
 
-	// Fast path for simple variable assignment
+	// Fast path for simple variable assignment ($var: simpleValue)
+	// Uses scope.Update so sub-scope assignments propagate to parent scopes.
 	if len(node.Name) > 1 && node.Name[0] == '$' && len(node.Children) == 0 {
 		varName := node.Name[1:]
 		value := resolveValue(node.Value, scope)
-		FastVarSet(scope, varName, value)
+		scope.Update(varName, value)
 		return true, nil
 	}
 

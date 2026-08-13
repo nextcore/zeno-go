@@ -278,9 +278,14 @@ func (e *Engine) Execute(ctx context.Context, node *Node, scope *Scope) (err err
 		// Gunakan helper internal untuk resolve value
 		val := e.ResolveShorthandValue(node, scope)
 
-		scope.Set(varName, val)
+		// [FIX] Gunakan Update (bukan Set) agar variabel yang dideklarasikan
+		// di scope luar (misal HTTP handler) tetap bisa diperbarui dari dalam
+		// sub-scope foreach/do. Jika variabel belum ada di mana pun, Update
+		// berperilaku sama seperti Set (membuat baru di scope saat ini).
+		scope.Update(varName, val)
 		return nil
 	}
+
 
 	// 3. Jika slot tidak ditemukan dan bukan variabel, coba jalankan anak-anaknya (Logic flow)
 	// Ini berguna untuk block tanpa nama atau struktur tree murni

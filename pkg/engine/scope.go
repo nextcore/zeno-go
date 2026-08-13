@@ -33,6 +33,65 @@ func (s *Scope) Set(key string, val interface{}) {
 	s.vars[key] = val
 }
 
+// Update menyimpan variabel ke scope tempat variabel tersebut pertama kali dideklarasikan.
+// Jika variabel sudah ada di scope ini atau parent scope mana pun, nilainya diperbarui di sana.
+// Jika belum ada di mana pun, variabel dibuat di scope saat ini (sama seperti Set).
+//
+// Ini memungkinkan assignment dalam foreach/do block bekerja dengan benar:
+// variabel yang dideklarasikan di scope luar tetap terlihat dan dapat dimodifikasi
+// dari dalam sub-scope iterasi.
+func (s *Scope) Update(key string, val interface{}) {
+	// Cek apakah variabel ada di scope saat ini
+	s.mu.RLock()
+	_, existsHere := s.vars[key]
+	parent := s.parent
+	s.mu.RUnlock()
+
+	if existsHere {
+		// Variabel ada di scope ini → update di sini
+		s.mu.Lock()
+		s.vars[key] = val
+		s.mu.Unlock()
+		return
+	}
+
+	if parent != nil {
+		// Coba update di parent scope secara rekursif
+		if parent.updateIfExists(key, val) {
+			return
+		}
+	}
+
+	// Variabel belum ada di mana pun → buat baru di scope saat ini
+	s.mu.Lock()
+	s.vars[key] = val
+	s.mu.Unlock()
+}
+
+// updateIfExists mencoba memperbarui variabel di scope ini atau ancestor-nya.
+// Mengembalikan true jika berhasil ditemukan dan diperbarui.
+func (s *Scope) updateIfExists(key string, val interface{}) bool {
+	s.mu.RLock()
+	_, existsHere := s.vars[key]
+	parent := s.parent
+	s.mu.RUnlock()
+
+	if existsHere {
+		s.mu.Lock()
+		s.vars[key] = val
+		s.mu.Unlock()
+		return true
+	}
+
+	if parent != nil {
+		return parent.updateIfExists(key, val)
+	}
+
+	return false
+}
+
+
+
 // Delete menghapus variabel dari scope current level
 func (s *Scope) Delete(key string) {
 	s.mu.Lock()
