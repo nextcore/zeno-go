@@ -62,7 +62,7 @@ func TestLogicSlots(t *testing.T) {
 			Name: "try",
 			Children: []*engine.Node{
 				{
-					Name: "do",
+					Name: "run",
 					Children: []*engine.Node{
 						{Name: "fail_slot"},
 					},

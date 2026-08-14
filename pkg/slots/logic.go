@@ -244,7 +244,7 @@ func RegisterLogicSlots(eng *engine.Engine) {
 		errVar := "error"
 
 		for _, c := range node.Children {
-			if c.Name == "do" {
+			if c.Name == "run" {
 				doNode = c
 			}
 			if c.Name == "catch" {
@@ -273,10 +273,10 @@ func RegisterLogicSlots(eng *engine.Engine) {
 		return nil
 	}, engine.SlotMeta{
 		Description: "Handle errors using a try-catch block.",
-		Example:     "try {\n  do: { ... }\n  catch: { ... }\n}",
+		Example:     "try {\n  run: { ... }\n  catch: { ... }\n}",
 		Inputs: map[string]engine.InputMeta{
 			"as":    {Description: "Variable name for error message (Default: 'error')", Required: false},
-			"do":    {Description: "Main code block to execute", Required: false},
+			"run":   {Description: "Main code block to execute", Required: false},
 			"catch": {Description: "Error handling code block", Required: false},
 		},
 	})
